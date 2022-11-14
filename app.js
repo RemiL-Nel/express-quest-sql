@@ -25,3 +25,4 @@ app.listen(port, (err) => {
   }
 });
 app.post("/api/users", database.postUser);
+app.put("/api/users/:id", database.updateUser);
