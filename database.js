@@ -10,67 +10,51 @@ const database = mysql.createPool({
   database: process.env.DB_NAME,
 });
 
-database
-  .getConnection()
-  .then(() => {
-    console.log("Can reach database");
-  })
-  .catch((err) => {
-    console.error(err);
-  });
-
 const getUsers = (req, res) => {
-  let sql = "select * from users";
-  const sqlValues = [];
-  if (req.query.language != null) {
-    sql += " where language = ?";
-    sqlValues.push(req.query.language);
-  }
-  if (req.query.city != null) {
-    sql += " where city = ?";
-    sqlValues.push(req.query.city);
-  }
   database
-    .query(sql, sqlValues)
+    .query("select * from users")
     .then(([users]) => {
       res.json(users);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send("Error retrieving data");
+    });
+};
+
+const getUserById = (req, res) => {
+  const id = parseInt(req.params.id);
+
+  database
+    .query("select * from users where id = ?", [id])
+    .then(([users]) => {
+      if (users[0] != null) {
+        res.json(users[0]);
+      } else {
+        res.status(404).send("Not Found");
+      }
     })
     .catch((err) => {
       console.error(err);
       res.status(500).send("Error retrieving data from database");
     });
 };
-// const getUserById = (req, res) => {
-//   const id = parseInt(req.params.id);
-//   database
-//     .query(sql, sqlValues, [id])
-//     .then(([users]) => {
-//       if (users[0] != null) {
-//         res.json(users[0]);
-//       } else {
-//         res.status(404).send("Not Found");
-//       }
-//     })
-//     .catch((err) => {
-//       console.error(err);
-//       res.status(500).send("Error retrieving data from database");
-//     });
-// };
-// const postUser = (req, res) => {
-//   const { firstname, lastname, email, city, language } = req.body;
-//   database
-//     .query(
-//       "INSERT INTO users(firstname, lastname, email, city, language) VALUES (?, ?, ?, ?, ?)",
-//       [firstname, lastname, email, city, language]
-//     )
-//     .then(([result]) => {
-//       res.location(`/api/users/${result.insertId}`).sendStatus(201);
-//     })
-//     .catch((err) => {
-//       console.error(err);
-//       res.status(500).send("Error saving the user");
-//     });
-// };
+const postUser = (req, res) => {
+  const { firstname, lastname, email, city, language, hashedPassword } =
+    req.body;
+  database
+    .query(
+      "INSERT INTO users(firstname, lastname, email, city, language, hashedPassword) VALUES (?, ?, ?, ?, ?, ?)",
+      [firstname, lastname, email, city, language, hashedPassword]
+    )
+    .then(([result]) => {
+      res.location(`/api/users/${result.insertId}`).sendStatus(201);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send("Error saving the user");
+    });
+};
 // const updateUser = (req, res) => {
 //   const id = parseInt(req.params.id);
 //   const { firstname, lastname, email, city, language } = req.body;
@@ -112,8 +96,8 @@ const getUsers = (req, res) => {
 
 module.exports = {
   getUsers,
-  // getUserById,
-  // postUser,
+  getUserById,
+  postUser,
   // updateUser,
   // deleteUser,
 };

@@ -1,5 +1,6 @@
 const express = require("express");
 require("dotenv").config();
+const { hashPassword } = require("./auth.js");
 
 const app = express();
 app.use(express.json());
@@ -15,7 +16,7 @@ app.get("/", welcome);
 const database = require("./database");
 
 app.get("/api/users", database.getUsers);
-// app.get("/api/users/:id", database.getUserById);
+app.get("/api/users/:id", database.getUserById);
 
 app.listen(port, (err) => {
   if (err) {
@@ -24,6 +25,6 @@ app.listen(port, (err) => {
     console.log(`Server is listening on ${port}`);
   }
 });
-// app.post("/api/users", database.postUser);
+app.post("/api/users", hashPassword, database.postUser);
 // app.put("/api/users/:id", database.updateUser);
 // app.delete("/api/users/:id", database.deleteUser);
